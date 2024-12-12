@@ -1,0 +1,36 @@
+// The buildscript block ensures that Gradle dependencies are correctly configured for your project.
+buildscript {
+    ext {
+        // You can define Kotlin version here for easier management
+        kotlin_version = '1.8.10' // Update this if necessary
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Update the Android Gradle Plugin (AGP) version to 8.x or latest compatible with Gradle 8.0
+        classpath 'com.android.tools.build:gradle:8.0.0' // For Android build
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.buildDir = "../build"
+
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+    project.evaluationDependsOn(":app")
+    
+}
+
+// This will clean the project build directory when running the clean task
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}
