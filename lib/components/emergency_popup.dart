@@ -5,7 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 Future<void> emergencyPopup(BuildContext context) async {
-  bool exists = await isDataExists("EmergencyNumber");
+  bool exists = await isDataExists("EmergencyNumber", boxPhones);
   if (exists) {
     print(boxPhones.get("EmergencyNumber"));
     var phoneNumber = boxPhones.get("EmergencyNumber");
@@ -33,7 +33,7 @@ Future<void> emergencyPopup(BuildContext context) async {
                     "Call $phoneNumber",
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 18 ,
+                      fontSize: 18,
                     ),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
@@ -77,16 +77,38 @@ Future<void> emergencyPopup(BuildContext context) async {
                     overflow: TextOverflow.ellipsis,
                     maxLines: 2,
                   ),
-                  onTap: () {
-                    getUserLocation(context).then((value) {
-                      final locationURL =
-                          'https://www.google.com/maps/place/${value.latitude},${value.longitude}';
-                      _sendSMS(
-                          "Emergency MY location: $locationURL",
-                          value.latitude,
-                          value.longitude,
-                          [boxPhones.get("EmergencyNumber")]);
-                    });
+                  onTap: () async {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (BuildContext context) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      },
+                    );
+                    try {
+                      await getUserLocation(context).then((value) {
+                        final locationURL =
+                            'https://www.google.com/maps/place/${value.latitude},${value.longitude}';
+                        _sendSMS(
+                            "Emergency MY location: $locationURL",
+                            value.latitude,
+                            value.longitude,
+                            [boxPhones.get("EmergencyNumber")]);
+                      });
+                    } catch (e) {
+                      // ignore: use_build_context_synchronously
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: Text("Error $e"),
+                            );
+                          });
+                    } finally {
+                      Navigator.pop(context);
+                    }
                   },
                 ),
               ),

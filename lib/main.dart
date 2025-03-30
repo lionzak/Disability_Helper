@@ -1,22 +1,31 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:disability_helper/services/health.dart';
+import 'consts.dart';
 import 'package:disability_helper/pages/home_page.dart';
 import 'package:disability_helper/services/boxes.dart';
 import 'package:disability_helper/services/reminder.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:hive_flutter/adapters.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure binding is initialized
+
+  Gemini.init(apiKey: GEMINI_API_KEY);
+
   await Hive.initFlutter();
-  
+
   Hive.registerAdapter(ReminderAdapter());
+  Hive.registerAdapter(HealthAdapter());
+
 
   boxReminders = await Hive.openBox<Reminder>('reminderBox');
-  
-  boxPhones= await Hive.openBox('phoneBox');
 
+  boxPhones = await Hive.openBox('phoneBox');
 
-   await AwesomeNotifications().initialize(
+  boxHealth = await Hive.openBox<Health>('healthBox');
+
+  await AwesomeNotifications().initialize(
     null, // Specify the default app icon
     [
       NotificationChannel(
@@ -41,7 +50,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Disability Helper',
+      title: 'Care Mate',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
         useMaterial3: true,

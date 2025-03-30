@@ -4,7 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   awesome_notifications
-  open_file_linux
+  file_selector_linux
   url_launcher_linux
 )
 

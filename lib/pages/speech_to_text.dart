@@ -1,4 +1,5 @@
 import 'package:disability_helper/components/emergency_popup.dart';
+import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter/material.dart';
 
@@ -25,7 +26,6 @@ class _SpeechToTextState extends State<SpeechToText> {
   void _startListening() async {
     bool available = await _speech.initialize();
     if (available) {
-      print(selectedLanguage);
       _speech.listen(
           localeId: _getLocaleId(selectedLanguage),
           onResult: (result) {
@@ -80,7 +80,7 @@ class _SpeechToTextState extends State<SpeechToText> {
           Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            decoration: const BoxDecoration(color: Color(0XFF98B9AB)),
+            decoration: const BoxDecoration(color: Color(0XFFb3dfff)),
           ),
           Padding(
             padding: const EdgeInsets.all(20.0),
@@ -116,7 +116,22 @@ class _SpeechToTextState extends State<SpeechToText> {
                             child: Text(value),
                           );
                         }).toList(),
-                      )
+                      ),
+                      const Spacer(),
+                      _text != "Press the button to start speaking" &&
+                              _text.isNotEmpty &&
+                              _text != "Listening..."
+                          ? IconButton(
+                              icon: const Icon(Icons.copy),
+                              onPressed: () {
+                                Clipboard.setData(ClipboardData(text: _text));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text('Copied to clipboard')),
+                                );
+                              },
+                            )
+                          : const SizedBox(),
                     ],
                   ),
                   const SizedBox(
@@ -127,9 +142,11 @@ class _SpeechToTextState extends State<SpeechToText> {
                           style: const TextStyle(
                               fontSize: 24, fontWeight: FontWeight.bold))),
                   const SizedBox(height: 20),
-                  buildButton("Start Listening", true, _startListening),
+                  buildButton("Start Listening", true, _startListening,
+                      Colors.lightBlue),
                   const SizedBox(height: 10),
-                  buildButton("Stop Listening", false, _stopListening)
+                  buildButton("Stop Listening", false, _stopListening,
+                      Colors.red.shade500)
                 ],
               ),
             ),
@@ -139,7 +156,8 @@ class _SpeechToTextState extends State<SpeechToText> {
     );
   }
 
-  Widget buildButton(String text, bool isListen, VoidCallback? onPress) {
+  Widget buildButton(
+      String text, bool isListen, VoidCallback? onPress, Color color) {
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -152,7 +170,7 @@ class _SpeechToTextState extends State<SpeechToText> {
         height: 50,
         width: MediaQuery.of(context).size.width,
         decoration: BoxDecoration(
-          color: Colors.lightBlue,
+          color: color,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Center(
