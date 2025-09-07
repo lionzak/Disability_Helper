@@ -1,12 +1,12 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:disability_helper/services/reminder.dart';
 import 'package:disability_helper/services/health.dart';
-import 'consts.dart';
 import 'package:disability_helper/pages/home_page.dart';
 import 'package:disability_helper/services/boxes.dart';
-import 'package:disability_helper/services/reminder.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_gemini/flutter_gemini.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:flutter/material.dart';
+import 'consts.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure binding is initialized

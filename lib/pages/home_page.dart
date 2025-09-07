@@ -1,7 +1,7 @@
-import 'package:disability_helper/components/emergency_popup.dart';
+import 'package:disability_helper/consts.dart';
+import 'package:disability_helper/services/data_checker.dart';
 import 'package:disability_helper/pages/settings_page.dart';
 import 'package:disability_helper/services/boxes.dart';
-import 'package:disability_helper/services/data_checker.dart';
 import 'package:disability_helper/services/health.dart';
 import 'package:disability_helper/widgets/grid_view.dart';
 import 'package:flutter/material.dart';
@@ -178,27 +178,19 @@ class _HomePageState extends State<HomePage> {
         titleTextStyle: const TextStyle(
             color: Colors.black, fontSize: 30, fontWeight: FontWeight.bold),
         centerTitle: true,
-        backgroundColor: Colors.lightBlue,
+        backgroundColor: BTN_COLOR,
       ),
       body: Stack(children: [
         Container(
           width: MediaQuery.of(context).size.width,
           height: MediaQuery.of(context).size.height,
-          decoration: const BoxDecoration(color: Color(0XFFb3dfff)),
+          decoration: const BoxDecoration(color: BG_COLOR),
         ),
         pages[currentIndex]
       ]),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await emergencyPopup(context);
-        },
-        child: const Icon(
-          Icons.sos_sharp,
-          size: 30,
-        ),
-      ),
+      floatingActionButton: FLOATING_BUTTON,
       bottomNavigationBar: BottomNavigationBar(
-          backgroundColor: const Color(0XFF0181ff),
+          backgroundColor: BTN_COLOR,
           selectedLabelStyle:
               const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           unselectedLabelStyle:

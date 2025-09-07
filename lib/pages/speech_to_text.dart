@@ -1,4 +1,5 @@
-import 'package:disability_helper/components/emergency_popup.dart';
+import 'package:disability_helper/components/build_button.dart';
+import 'package:disability_helper/consts.dart';
 import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter/material.dart';
@@ -24,15 +25,36 @@ class _SpeechToTextState extends State<SpeechToText> {
   }
 
   void _startListening() async {
-    bool available = await _speech.initialize();
-    if (available) {
-      _speech.listen(
+    try {
+      bool available = await _speech.initialize();
+      if (available) {
+        _speech.listen(
           localeId: _getLocaleId(selectedLanguage),
           onResult: (result) {
             setState(() {
               _text = result.recognizedWords;
             });
-          });
+          },
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Speech recognition not available")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+  }
+
+  void _stopListening() async {
+    try {
+      await _speech.stop();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
     }
   }
 
@@ -41,21 +63,49 @@ class _SpeechToTextState extends State<SpeechToText> {
       case 'EN':
         return 'en-US';
       case 'AR':
-        return 'ar-SA';
-      // Add more language-locale pairs as needed
+        return 'ar';
       default:
-        return 'en-US'; // Default to English
+        return 'en-US';
     }
   }
 
-  void _stopListening() async {
-    await _speech.stop();
+  void _copyToClipboard() {
+    Clipboard.setData(ClipboardData(text: _text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Copied to clipboard')),
+    );
   }
 
   @override
   void dispose() {
-    super.dispose();
     _speech.stop();
+    _speech.cancel();
+    super.dispose();
+  }
+
+  Widget buildDropdown() {
+    return DropdownButton<String>(
+      value: selectedLanguage,
+      icon: const Icon(Icons.arrow_drop_down),
+      iconSize: 35,
+      elevation: 16,
+      style: const TextStyle(color: BTN_COLOR, fontSize: 20),
+      underline: Container(
+        height: 2,
+        color: SECONDARY_COLOR,
+      ),
+      onChanged: (String? newValue) {
+        setState(() {
+          selectedLanguage = newValue!;
+        });
+      },
+      items: languages.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+    );
   }
 
   @override
@@ -64,121 +114,65 @@ class _SpeechToTextState extends State<SpeechToText> {
       appBar: AppBar(
         title: const Text("Speech to Text"),
         centerTitle: true,
-        backgroundColor: Colors.lightBlue,
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await emergencyPopup(context);
-        },
-        child: const Icon(
-          Icons.sos_sharp,
-          size: 30,
-        ),
+        backgroundColor: BTN_COLOR,
       ),
       body: Stack(
         children: [
           Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
-            decoration: const BoxDecoration(color: Color(0XFFb3dfff)),
+            decoration: const BoxDecoration(color: BG_COLOR),
           ),
           Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      DropdownButton<String>(
-                        value: selectedLanguage,
-                        icon: const Icon(Icons.arrow_drop_down),
-                        iconSize: 28,
-                        elevation: 16,
-                        style: const TextStyle(
-                            color: Colors.deepPurple, fontSize: 20),
-                        underline: Container(
-                          height: 2,
-                          color: Colors.deepPurpleAccent,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+                  children: [
+                    buildDropdown(),
+                    const Spacer(),
+                    if (_text.isNotEmpty &&
+                        _text != "Press the button to start speaking" &&
+                        _text != "Listening...")
+                      IconButton(
+                        icon: const Icon(
+                          Icons.copy,
+                          color: BTN_COLOR,
+                          size: 28,
                         ),
-                        onChanged: (String? newValue) {
-                          setState(() {
-                            selectedLanguage = newValue!;
-                            // Here, you can implement language switching logic
-                            // For example, using `context.setLocale()` from the `flutter_localizations` package
-                          });
-                        },
-                        items: languages
-                            .map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
+                        onPressed: _copyToClipboard,
                       ),
-                      const Spacer(),
-                      _text != "Press the button to start speaking" &&
-                              _text.isNotEmpty &&
-                              _text != "Listening..."
-                          ? IconButton(
-                              icon: const Icon(Icons.copy),
-                              onPressed: () {
-                                Clipboard.setData(ClipboardData(text: _text));
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Copied to clipboard')),
-                                );
-                              },
-                            )
-                          : const SizedBox(),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  FittedBox(
-                      child: SelectableText(_text,
-                          style: const TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold))),
-                  const SizedBox(height: 20),
-                  buildButton("Start Listening", true, _startListening,
-                      Colors.lightBlue),
-                  const SizedBox(height: 10),
-                  buildButton("Stop Listening", false, _stopListening,
-                      Colors.red.shade500)
-                ],
-              ),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget buildButton(
-      String text, bool isListen, VoidCallback? onPress, Color color) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _text =
-              isListen ? "Listening..." : "Press the button to start speaking";
-        });
-        onPress!();
-      },
-      child: Container(
-        height: 50,
-        width: MediaQuery.of(context).size.width,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Center(
-            child: Text(text,
-                style: const TextStyle(
-                    color: Colors.white,
+                  ],
+                ),
+                const SizedBox(height: 10),
+                SelectableText(
+                  _text,
+                  style: const TextStyle(
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    fontSize: 20))),
+                    color: Colors.white,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: null,
+                ),
+                const SizedBox(height: 20),
+                buildButton(
+                    text: "Start Listening",
+                    onPress: _startListening,
+                    color: Colors.lightBlue,
+                    context: context),
+                const SizedBox(height: 10),
+                buildButton(
+                    text: "Stop Listening",
+                    onPress: _stopListening,
+                    color: Colors.red.shade500,
+                    context: context),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

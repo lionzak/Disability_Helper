@@ -1,4 +1,4 @@
-import 'package:disability_helper/components/emergency_popup.dart';
+import 'package:disability_helper/components/food_card.dart';
 import 'package:disability_helper/consts.dart';
 import 'package:disability_helper/pages/food_detail_page.dart';
 import 'package:flutter/material.dart';
@@ -20,50 +20,50 @@ class _FoodNutrientsPageState extends State<FoodNutrientsPage> {
   }
 
   void _runFilter(String enteredKeyword) {
-    List<Map<String, dynamic>> results = [];
-    if (enteredKeyword.isEmpty) {
-      results = foodList;
-    } else {
-      results = foodList
-          .where((element) => element['name']
-              .toLowerCase()
-              .contains(enteredKeyword.toLowerCase()))
-          .map((element) => element)
-          .toList();
-    }
     setState(() {
-      foundFoods = results;
+      foundFoods = enteredKeyword.isEmpty
+          ? foodList
+          : foodList
+              .where((element) => element['name']
+                  .toLowerCase()
+                  .contains(enteredKeyword.toLowerCase()))
+              .toList();
     });
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
-      backgroundColor: const Color(0XFFb3dfff),
+      backgroundColor: BG_COLOR,
       appBar: AppBar(
         title: const Text("Food Nutrients"),
         centerTitle: true,
-        backgroundColor: Colors.lightBlue,
+        backgroundColor: BTN_COLOR,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await emergencyPopup(context);
-        },
-        child: const Icon(
-          Icons.sos_sharp,
-          size: 30,
-        ),
-      ),
+      floatingActionButton: FLOATING_BUTTON,
       body: Padding(
         padding: const EdgeInsets.only(top: 8.0, left: 8, right: 8),
         child: Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
           const SizedBox(height: 20),
           TextField(
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
             onChanged: (value) => _runFilter(value),
             decoration: const InputDecoration(
               border: OutlineInputBorder(),
               labelText: 'Search',
-              suffixIcon: Icon(Icons.search),
+              labelStyle: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20),
+              suffixIcon: Icon(
+                Icons.search,
+                color: Colors.white,
+              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -111,67 +111,16 @@ class _FoodNutrientsPageState extends State<FoodNutrientsPage> {
                 shrinkWrap: true,
                 crossAxisCount: 2,
                 children: foundFoods.map((item) {
-                  return foodCard(item);
+                  return FoodCard(
+                    item: item,
+                    screenWidth: screenWidth,
+                  );
                 }).toList(),
               ),
             ),
           ),
           const SizedBox(height: 30),
         ]),
-      ),
-    );
-  }
-
-  Widget foodCard(Map<String, dynamic> item) {
-    return GestureDetector(
-      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => FoodDetailPage(
-                item: item,
-              ))),
-      child: Container(
-        margin: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(50),
-        ),
-        child: Material(
-          color: Colors.white,
-          elevation: 5,
-          borderRadius: BorderRadius.circular(8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Material(
-                borderRadius: BorderRadius.circular(8),
-                elevation: 5,
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: Image.asset(
-                      item['imagePath'],
-                      height: 120,
-                      width: 120,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Text(
-                  item['name'],
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 26),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

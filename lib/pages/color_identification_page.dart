@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:disability_helper/components/emergency_popup.dart';
+import 'package:disability_helper/components/image_preview.dart';
 import 'package:disability_helper/consts.dart';
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -16,12 +16,12 @@ class ColorIdentificationPage extends StatefulWidget {
 
 class _ColorIdentificationPageState extends State<ColorIdentificationPage> {
   String _geminiResponse = '';
-  bool _isLoading = false; // Track loading state
+  bool _isLoading = false;
   XFile? _imageFile;
   final TextEditingController _textController = TextEditingController();
 
   Future<DataPart> fileToPart(String path) async {
-    final mimeType = lookupMimeType(path); // Automatically detects MIME type
+    final mimeType = lookupMimeType(path);
 
     return DataPart(mimeType!, await File(path).readAsBytes());
   }
@@ -30,83 +30,92 @@ class _ColorIdentificationPageState extends State<ColorIdentificationPage> {
     return lookupMimeType(filePath); // Returns a MIME type like 'image/jpeg'
   }
 
-  void pickImage(ImageSource imageSource) async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: imageSource);
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
 
-    if (pickedFile != null) {
-      setState(() {
-        _imageFile = pickedFile;
-      });
-    } else {
-      return;
+  void pickImage(ImageSource imageSource) async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile =
+          await picker.pickImage(source: imageSource, imageQuality: 45);
+
+      if (pickedFile != null) {
+        setState(() {
+          _imageFile = pickedFile;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No image selected")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
     }
   }
 
   Future<void> _sendToGemini() async {
     if (_imageFile != null && _textController.text.isNotEmpty) {
       setState(() {
-        _isLoading = true; // Set loading to true when starting the request
-        _geminiResponse = 'Loading...'; // Show loading message
+        _isLoading = true;
+        _geminiResponse = 'Loading...';
       });
 
-      final model = GenerativeModel(
-        model: 'gemini-1.5-flash',
-        apiKey: GEMINI_API_KEY,
-      );
+      try {
+        final model = GenerativeModel(
+          model: 'gemini-1.5-flash',
+          apiKey: GEMINI_API_KEY,
+        );
 
-      final GenerateContentResponse response;
+        final image = await fileToPart(_imageFile!.path);
 
-      final image = await fileToPart(_imageFile!.path);
-      response = await model.generateContent([
-        Content.multi([
-          TextPart(
-              "Very short answer with no other details: what color of the ${_textController.text} in the image ?"),
-          image
-        ])
-      ]);
+        final response = await model.generateContent([
+          Content.multi([
+            TextPart(
+                "Very short answer with no other details: what color of the ${_textController.text} in the image?"),
+            image,
+          ])
+        ]);
 
-      _geminiResponse = '';
-      _geminiResponse += response.text!;
-      setState(() {});
-
-      {
         setState(() {
+          _geminiResponse = response.text ?? "No response received";
+          _isLoading = false;
+        });
+      } catch (e) {
+        setState(() {
+          _geminiResponse = "Error: $e";
           _isLoading = false;
         });
       }
     } else {
-      setState(() {
-        showDialog(
-            context: context,
-            builder: (context) => const AlertDialog(
-                    title: Text(
-                  "Please Enter Full Data",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                )));
-        _isLoading = false;
-      });
+      showDialog(
+        context: context,
+        builder: (context) => const AlertDialog(
+          title: Text(
+            "Please Enter Full Data",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+        ),
+      );
     }
   }
+
+  
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0XFFb3dfff),
+      backgroundColor: BG_COLOR,
       appBar: AppBar(
         title: const Text("Color Identifier"),
         centerTitle: true,
-        backgroundColor: Colors.lightBlue,
+        backgroundColor: BTN_COLOR,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          await emergencyPopup(context);
-        },
-        child: const Icon(
-          Icons.sos_sharp,
-          size: 30,
-        ),
-      ),
+      floatingActionButton: FLOATING_BUTTON,
       body: Padding(
         padding: const EdgeInsets.all(10.0),
         child: SingleChildScrollView(
@@ -114,29 +123,25 @@ class _ColorIdentificationPageState extends State<ColorIdentificationPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _imageFile != null
-                  ? SizedBox(
-                      height: MediaQuery.of(context).size.height / 3.4,
-                      child: Image.file(
-                        File(_imageFile!.path),
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  : Container(
-                      decoration: const BoxDecoration(color: Colors.grey),
-                      height: MediaQuery.of(context).size.height / 3.4,
-                    ),
+              ImagePreview(imageFile: _imageFile),
               const SizedBox(
                 height: 20,
               ),
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: TextFormField(
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20),
                   controller: _textController,
                   decoration: InputDecoration(
                       suffixIcon: IconButton(
                           onPressed: _sendToGemini,
-                          icon: const Icon(Icons.send)),
+                          icon: const Icon(
+                            Icons.send,
+                            color: BTN_COLOR,
+                          )),
                       enabledBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: Colors.grey)),
                       focusedBorder: const OutlineInputBorder(
@@ -146,7 +151,9 @@ class _ColorIdentificationPageState extends State<ColorIdentificationPage> {
                       label: const Text(
                           "Specify The Object In The Image You Want To Identify..."),
                       labelStyle: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold)),
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white)),
                 ),
               ),
               const SizedBox(
@@ -172,7 +179,7 @@ class _ColorIdentificationPageState extends State<ColorIdentificationPage> {
                 height: MediaQuery.of(context).size.height / 3.2,
                 width: MediaQuery.of(context).size.width / 1.1,
                 decoration: BoxDecoration(
-                  color: Colors.grey,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(3),
                 ),
                 child: Center(
@@ -184,7 +191,7 @@ class _ColorIdentificationPageState extends State<ColorIdentificationPage> {
                     child: Text(
                       "The Detected Color Is..",
                       style: TextStyle(
-                          color: Colors.white,
+                          color: Colors.black,
                           fontSize: 25,
                           fontWeight: FontWeight.bold),
                     ),
@@ -195,8 +202,8 @@ class _ColorIdentificationPageState extends State<ColorIdentificationPage> {
                   Text(
                     _geminiResponse,
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 38,
+                        color: Colors.black,
+                        fontSize: 40,
                         fontWeight: FontWeight.bold),
                   )
                 ])),
@@ -217,7 +224,7 @@ class _ColorIdentificationPageState extends State<ColorIdentificationPage> {
           height: 67,
           width: MediaQuery.of(context).size.width / 1.1,
           decoration: BoxDecoration(
-            color: Colors.lightBlue,
+            color: BTN_COLOR,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Center(

@@ -1,3 +1,4 @@
+import 'package:disability_helper/components/emergency_option_tile.dart';
 import 'package:disability_helper/services/boxes.dart';
 import 'package:disability_helper/services/data_checker.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import 'package:url_launcher/url_launcher.dart';
 Future<void> emergencyPopup(BuildContext context) async {
   bool exists = await isDataExists("EmergencyNumber", boxPhones);
   if (exists) {
-    print(boxPhones.get("EmergencyNumber"));
     var phoneNumber = boxPhones.get("EmergencyNumber");
     showDialog(
       context: context,
@@ -17,100 +17,26 @@ Future<void> emergencyPopup(BuildContext context) async {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.grey.shade300,
-                ),
-                child: ListTile(
-                  leading: const Icon(
-                    Icons.call,
-                    color: Colors.green,
-                    size: 35,
-                  ),
-                  title: Text(
-                    "Call $phoneNumber",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                  ),
-                  onTap: () async {
-                    // Call logic
-                    Uri uri = Uri(
-                        scheme: 'tel', path: boxPhones.get("EmergencyNumber"));
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri);
-                    } else {
-                      // ignore: use_build_context_synchronously
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return const AlertDialog(
-                              title: Text("Cannot make call"),
-                            );
-                          });
-                    }
-                  },
-                ),
+              EmergencyOptionTile(
+                icon: Icons.call,
+                iconColor: Colors.green,
+                title: "Call $phoneNumber",
+                onTap: () async {
+                  Uri uri = Uri(scheme: 'tel', path: phoneNumber);
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri);
+                  } else {
+                    _showErrorDialog(context, "Cannot make call");
+                  }
+                },
               ),
-              Container(
-                margin: const EdgeInsets.only(top: 10),
-                decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(10)),
-                child: ListTile(
-                  leading: const Icon(
-                    Icons.sms,
-                    color: Colors.blue,
-                    size: 35,
-                  ),
-                  title: Text(
-                    "Send Location to $phoneNumber",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                  ),
-                  onTap: () async {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (BuildContext context) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
-                        );
-                      },
-                    );
-                    try {
-                      await getUserLocation(context).then((value) {
-                        final locationURL =
-                            'https://www.google.com/maps/place/${value.latitude},${value.longitude}';
-                        _sendSMS(
-                            "Emergency MY location: $locationURL",
-                            value.latitude,
-                            value.longitude,
-                            [boxPhones.get("EmergencyNumber")]);
-                      });
-                    } catch (e) {
-                      // ignore: use_build_context_synchronously
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: Text("Error $e"),
-                            );
-                          });
-                    } finally {
-                      Navigator.pop(context);
-                    }
-                  },
-                ),
+              EmergencyOptionTile(
+                icon: Icons.sms,
+                iconColor: Colors.blue,
+                title: "Send Location to $phoneNumber",
+                onTap: () async {
+                  _sendLocation(context, phoneNumber);
+                },
               ),
             ],
           ),
@@ -118,62 +44,79 @@ Future<void> emergencyPopup(BuildContext context) async {
       },
     );
   } else {
-    await showDialog(
-        context: context,
-        builder: (context) => const AlertDialog(
-              title: Text("Please enter a phone number in settings"),
-            ));
+    _showErrorDialog(context, "Please enter a phone number in settings");
   }
 }
 
-void _sendSMS(String message, double latitude, double longitude,
-    List<String> recipents) async {
+void _showErrorDialog(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(message),
+    ),
+  );
+}
+
+Future<void> _sendSMS(String message, String phoneNumber) async {
   final Uri smsUri = Uri(
     scheme: 'sms',
-    path: boxPhones
-        .get("EmergencyNumber"), // Replace with the recipient's phone number
-
+    path: phoneNumber,
     queryParameters: {
-      'body':
-          'Emergency! My location: https://www.google.com/maps/place/$latitude,$longitude',
+      'body': message,
     },
   );
 
   if (await canLaunchUrl(smsUri)) {
     await launchUrl(smsUri);
   } else {
-    print("Could not launch SMS");
     throw Exception('Could not launch SMS');
+  }
+}
+
+Future<void> _sendLocation(BuildContext context, String phoneNumber) async {
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => const Center(
+      child: CircularProgressIndicator(),
+    ),
+  );
+
+  try {
+    final position = await getUserLocation(context);
+    final locationURL =
+        'https://www.google.com/maps/place/${position.latitude},${position.longitude}';
+    await _sendSMS(
+      "Emergency! My location: $locationURL",
+      phoneNumber,
+    );
+  } catch (e) {
+    _showErrorDialog(context, "Error: $e");
+  } finally {
+    Navigator.pop(context); // Close the loading dialog
   }
 }
 
 Future<Position> getUserLocation(BuildContext context) async {
   bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
   if (!serviceEnabled) {
-    await showDialog(
-        context: context,
-        builder: (context) =>
-            const AlertDialog(title: Text("Location service is disabled")));
+    _showErrorDialog(context, "Location service is disabled");
     return Future.error("Location service is disabled");
   }
+
   LocationPermission permission = await Geolocator.checkPermission();
   if (permission == LocationPermission.denied) {
     permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied) {
-      await showDialog(
-          context: context,
-          builder: (context) =>
-              const AlertDialog(title: Text("Location service is Denied")));
-      return Future.error("Location permission are denied");
+      _showErrorDialog(context, "Location permission is denied");
+      return Future.error("Location permission is denied");
     }
   }
+
   if (permission == LocationPermission.deniedForever) {
-    await showDialog(
-        context: context,
-        builder: (context) => const AlertDialog(
-            title: Text("Location service is Denied Forever")));
-    return Future.error(
-        "Location permissions are permanently denied, we cannot request permissions");
+    _showErrorDialog(context, "Location permission is permanently denied");
+    return Future.error("Location permission is permanently denied");
   }
+
   return await Geolocator.getCurrentPosition();
 }

@@ -12,56 +12,58 @@ class GridViewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(crossAxisCount: 2, children: const [
+    final double screenWidth = MediaQuery.of(context).size.width;
+    double factor = screenWidth > 600 ? 0 : -50;
+    return GridView.count(crossAxisCount: 2, children: [
       GridItem(
-        page: TextToSpeechPage(),
+        page: const TextToSpeechPage(),
         title: "Text To Speech",
         image: "images/textToSpeechIcon.webp",
-        imgWidth: 200,
-        imgHeight: 100,
+        imgWidth: 250 + factor,
+        imgHeight: 150 + factor,
         spaceBetween: 10,
       ),
       GridItem(
-        page: SpeechToText(),
+        page: const SpeechToText(),
         title: "Speech To Text",
         image: "images/microphone 2.webp",
-        imgWidth: 100,
-        imgHeight: 100,
+        imgWidth: 150 + factor,
+        imgHeight: 150 + factor,
         spaceBetween: 10,
       ),
       GridItem(
-        page: MedicineReminderPage(),
+        page: const MedicineReminderPage(),
         title: "Medicine Reminder",
         image: "images/medicine 1.webp",
-        imgWidth: 120,
-        imgHeight: 120,
+        imgWidth: 170 + factor,
+        imgHeight: 170 + factor,
         spaceBetween: 5,
       ),
       GridItem(
-        page: FoodNutrientsPage(),
+        page: const FoodNutrientsPage(),
         title: "Food Nutrients",
         image: "images/grocery 1.webp",
-        imgWidth: 110,
-        imgHeight: 120,
+        imgWidth: 160 + factor,
+        imgHeight: 170 + factor,
         spaceBetween: 5,
         isNutrients: true,
       ),
       GridItem(
-        page: ColorIdentificationPage(),
+        page: const ColorIdentificationPage(),
         title: "Color Identification",
         image: "images/color_wheel.webp",
-        imgWidth: 120,
-        imgHeight: 120,
+        imgWidth: 170 + factor,
+        imgHeight: 170 + factor,
         spaceBetween: 5,
       ),
       GridItem(
-        page: AiAssistantPage(),
+        page: const AiAssistantPage(),
         title: "AI Assistant",
         image: "images/ai logo 2.webp",
-        imgWidth: 120,
-        imgHeight: 120,
+        imgWidth: 170 + factor,
+        imgHeight: 170 + factor,
         spaceBetween: 5,
-      ),
+      ),  
     ]);
   }
 }

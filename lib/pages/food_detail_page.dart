@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:disability_helper/consts.dart';
 import 'package:disability_helper/services/boxes.dart';
 import 'package:disability_helper/services/gemini.dart';
 import 'package:disability_helper/services/health.dart';
@@ -18,8 +19,6 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
   final TextEditingController weightController = TextEditingController();
   String score = "...";
   String nutrition = "...";
-
-  Timer? _timer;
 
   String addColonToString(String input) {
     RegExp regexEndWord = RegExp(r'(\b\w+)(?=\d[^\s])');
@@ -106,6 +105,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FLOATING_BUTTON,
       appBar: AppBar(),
       body: SafeArea(
         child: Container(
@@ -141,7 +141,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                   overflow: TextOverflow.ellipsis, // Handle overflow
                 ),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Expanded(
                       child: Column(
@@ -150,7 +150,7 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                           const Text("Weight:",
                               style: TextStyle(
                                   fontSize: 25, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 10),
                           TextField(
                             controller: weightController,
                             keyboardType: TextInputType.number,
@@ -188,44 +188,57 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                                   child: Text(
                                 "Search",
                                 style: TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.bold),
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white),
                               )),
                             ),
                           )
                         ],
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10),
-                        color: Colors.grey,
-                      ),
-                      child: Column(
-                        children: [
-                          const Center(
-                            child: Text(
-                              "Score:",
-                              style: TextStyle(
-                                  fontSize: 30, fontWeight: FontWeight.bold),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.grey,
+                        ),
+                        child: Column(
+                          children: [
+                            const Center(
+                              child: Text(
+                                "Score:",
+                                style: TextStyle(
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white),
+                              ),
                             ),
-                          ),
-                          Center(
-                            child: Text(score.replaceAll(RegExp(r'\s+'), ""),
-                                style: const TextStyle(
-                                    fontSize: 30, fontWeight: FontWeight.bold)),
-                          ),
-                          parseScoreIcon(score),
-                        ],
+                            Center(
+                              child: Text(score.replaceAll(RegExp(r'\s+'), ""),
+                                  style: const TextStyle(
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white)),
+                            ),
+                            parseScoreIcon(score),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
                 const Text("Nutrition Facts:",
-                    style:
-                        TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    )),
                 const SizedBox(height: 5),
                 Container(
                   margin: const EdgeInsets.only(bottom: 8),
@@ -237,7 +250,9 @@ class _FoodDetailPageState extends State<FoodDetailPage> {
                     padding: const EdgeInsets.all(8.0),
                     child: Text(nutrition,
                         style: const TextStyle(
-                            fontSize: 25, fontWeight: FontWeight.bold)),
+                            fontSize: 25,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white)),
                   ),
                 ),
               ],

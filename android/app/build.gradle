@@ -28,21 +28,22 @@ android {
     defaultConfig {
         // Application ID should match the namespace
         applicationId = "com.example.disability_helper"  // Your application ID
-        minSdk = flutter.minSdkVersion
+        minSdk = 19
+        targetSdkVersion 34
         targetSdk = flutter.targetSdkVersion
         minSdkVersion = 23
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-
+        compileSdkVersion 34  // Set this to 33 or 34
     }
 
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             signingConfig = signingConfigs.debug
-            shrinkResources true
-            minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            shrinkResources true // Remove unused resources
+            minifyEnabled true // Enable code shrinking
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }

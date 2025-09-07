@@ -1,3 +1,4 @@
+import 'package:disability_helper/consts.dart';
 import 'package:disability_helper/services/boxes.dart';
 import 'package:disability_helper/services/data_checker.dart';
 import 'package:flutter/material.dart';
@@ -24,8 +25,12 @@ class GridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+
     return Padding(
-        padding: const EdgeInsets.all(8),
+        padding: EdgeInsets.all(
+            screenWidth > 600 ? 20 : 10), // Set padding based on screen width
+
         child: GestureDetector(
           onTap: () async {
             if (isNutrients == true &&
@@ -43,13 +48,14 @@ class GridItem extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              color: const Color(0XFF25a0fd),
+              color: Colors.white,
             ),
-            height: 100,
-            width: 100,
+            height: 1,
+            width: 1,
             child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 2),
+              margin: const EdgeInsets.symmetric(horizontal: 1),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(height: 4),
                   Image.asset(
@@ -60,12 +66,12 @@ class GridItem extends StatelessWidget {
                   ),
                   SizedBox(height: spaceBetween),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 1.0),
                     child: FittedBox(
                       child: Text(title,
-                          style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 25,
+                          style: TextStyle(
+                              color: TEXT_COLOR2,
+                              fontSize: screenWidth > 600 ? 30 : 28,
                               fontWeight: FontWeight.bold)),
                     ),
                   ),

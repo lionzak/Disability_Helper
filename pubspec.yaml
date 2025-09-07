@@ -34,7 +34,6 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
   flutter_tts: ^4.2.0
   speech_to_text: ^7.0.0
   hive:
@@ -55,6 +54,7 @@ dependencies:
   google_generative_ai: ^0.4.6
   mime: ^2.0.0
   advanced_chips_input: ^0.1.5
+  #remove any unused packages from the list above
 
 dev_dependencies:
   flutter_test:
@@ -83,7 +83,6 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - images/
-  #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
