@@ -1,7 +1,7 @@
 import 'package:disability_helper/components/emergency_popup.dart';
 import 'package:flutter/material.dart';
 
-String GEMINI_API_KEY = "AIzaSyBachxfHDicT6pDrLh3XG0kgworip4TeLI";
+String GEMINI_API_KEY = XXXX;
 
 List<Map<String, dynamic>> foodList = [
   // Vegetables
